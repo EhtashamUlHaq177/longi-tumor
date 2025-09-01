@@ -1,0 +1,195 @@
+import React, { useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+export default function AdminRequests() {
+  // Initial dummy requests
+  const [allRequests, setAllRequests] = useState([
+    {
+      id: 1,
+      name: "Dr. Sarah Khan",
+      email: "sarah.khan@example.com",
+      organization: "Lahore General Hospital",
+      specialty: "Neurosurgeon",
+      certificate: "https://via.placeholder.com/200",
+      status: "Pending",
+    },
+    {
+      id: 2,
+      name: "Dr. Ahmed Raza",
+      email: "ahmed.raza@example.com",
+      organization: "Karachi Medical Center",
+      specialty: "Radiologist",
+      certificate: "https://via.placeholder.com/200",
+      status: "Pending",
+    },
+  ]);
+
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("Pending");
+
+  // Approve & Reject functions
+  const handleApprove = (id) => {
+    updateStatus(id, "Approved");
+    toast.success("User Approved Successfully!");
+    setSelectedRequest(null);
+  };
+
+  const handleDisapprove = (id) => {
+    updateStatus(id, "Rejected");
+    toast.error("User Request Disapproved!");
+    setSelectedRequest(null);
+  };
+
+  const updateStatus = (id, newStatus) => {
+    setAllRequests((prev) =>
+      prev.map((req) =>
+        req.id === id ? { ...req, status: newStatus } : req
+      )
+    );
+  };
+
+  // Filter requests based on status
+  const filteredRequests = allRequests.filter(
+    (req) => req.status === filterStatus
+  );
+
+  return (
+    <div className="p-6 mt-20">
+      <h1 className="text-2xl font-bold text-[var(--medical-red)] mb-6">
+        User Requests
+      </h1>
+
+      {/* Status Filter */}
+      <div className="flex space-x-4 mb-6">
+        {["Pending", "Approved", "Rejected"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilterStatus(status)}
+            className={`px-4 py-2 rounded-lg border ${
+              filterStatus === status
+                ? "bg-[var(--medical-red)] text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto bg-white rounded-xl shadow">
+        <table className="w-full border border-gray-200">
+          <thead className="bg-gray-100 border-b border-gray-200">
+            <tr>
+              <th className="py-3 px-4 text-left">Name</th>
+              <th className="py-3 px-4 text-left">Email</th>
+              <th className="py-3 px-4 text-left">Organization</th>
+              <th className="py-3 px-4 text-left">Specialty</th>
+              <th className="py-3 px-4 text-left">Certificate</th>
+              <th className="py-3 px-4"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRequests.length > 0 ? (
+              filteredRequests.map((req) => (
+                <tr
+                  key={req.id}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  <td className="py-3 px-4">{req.name}</td>
+                  <td className="py-3 px-4">{req.email}</td>
+                  <td className="py-3 px-4">{req.organization}</td>
+                  <td className="py-3 px-4">{req.specialty}</td>
+                  <td className="py-3 px-4">
+                    <img
+                      src={req.certificate}
+                      alt="certificate"
+                      className="w-12 h-12 object-cover rounded cursor-pointer border"
+                      onClick={() => setLightboxImage(req.certificate)}
+                    />
+                  </td>
+                  <td className="py-3 px-4">
+                    {filterStatus === "Pending" && (
+                      <button
+                        onClick={() => setSelectedRequest(req)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                      >
+                        View
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="6"
+                  className="py-6 text-center text-gray-500 italic"
+                >
+                  No {filterStatus} requests found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setLightboxImage(null)}
+        >
+          <img
+            src={lightboxImage}
+            alt="Enlarged"
+            className="max-w-full max-h-full rounded-lg shadow-lg"
+          />
+        </div>
+      )}
+
+      {/* Modal Overlay */}
+      {selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg relative">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Request Details
+            </h2>
+            <p><strong>Name:</strong> {selectedRequest.name}</p>
+            <p><strong>Email:</strong> {selectedRequest.email}</p>
+            <p><strong>Organization:</strong> {selectedRequest.organization}</p>
+            <p><strong>Specialty:</strong> {selectedRequest.specialty}</p>
+            <div className="mt-4">
+              <p className="font-semibold mb-2">Certificate:</p>
+              <img
+                src={selectedRequest.certificate}
+                alt="certificate"
+                className="w-full max-h-60 object-cover border rounded"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                onClick={() => handleDisapprove(selectedRequest.id)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Disapprove
+              </button>
+              <button
+                onClick={() => handleApprove(selectedRequest.id)}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer position="bottom-right" />
+    </div>
+  );
+}
