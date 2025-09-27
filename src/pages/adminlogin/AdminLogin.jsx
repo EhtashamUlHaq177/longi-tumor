@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -8,25 +8,38 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
 
-    // Static admin credentials for now
-    const adminEmail = "admin@example.com";
-    const adminPassword = "admin123";
+    try {
+      const res = await fetch("http://localhost:5000/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // important for cookies
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (email === adminEmail && password === adminPassword) {
-      toast.success("Login successful!");
-      setTimeout(() => {
-        navigate("/admin/requests"); // Redirect to Admin Requests page
-      }, 1000);
-    } else {
-      toast.error("Invalid email or password!");
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Login successful!");
+        setTimeout(() => {
+          // navigate("/googleadmin");
+          navigate("/googleadmin", { replace: true });
+
+        }, 1000);
+      } else {
+        toast.error(data.message || "Invalid email or password!");
+      }
+    } catch (err) {
+      toast.error("Server error");
     }
   };
 
+ 
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6 text-[var(--medical-red)]">
           Admin Login
@@ -50,7 +63,7 @@ export default function AdminLogin() {
             <label className="block mb-1 font-medium text-gray-700">
               Password
             </label>
-            <input
+            <input 
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -60,15 +73,18 @@ export default function AdminLogin() {
             />
           </div>
 
-          <Link to='/googleadmin'> <button
+          <button
             type="submit"
             className="w-full bg-[var(--medical-red)] text-white py-2 rounded-lg hover:bg-red-600 transition"
           >
             Login
           </button>
-          </Link>
         </form>
+
+
+        
       </div>
+
       <ToastContainer position="bottom-right" />
     </div>
   );
