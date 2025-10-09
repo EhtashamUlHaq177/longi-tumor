@@ -32,8 +32,11 @@ export default function AdminRequests() {
 const handleAdminLogout = async () => {
   try {
     await axios.post("http://localhost:5000/api/admin/logout", {}, { withCredentials: true });
+      localStorage.removeItem("authType");
     toast.success("Logged out successfully");
     navigate("/auth");
+    window.location.reload();
+
   } catch (err) {
     toast.error("Logout failed");
   }

@@ -15,8 +15,8 @@ export default function Auth() {
   const toggleForm = () => setIsLogin(!isLogin);
 
 
-  
-    const handleSignupSubmit = async (e) => {
+
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(signupFormRef.current);
     const password = formData.get("password");
@@ -26,31 +26,31 @@ export default function Auth() {
       return;
     }
     toast.loading("Submitting request for verification...");
-    
 
-try {
-  const response = await axios.post(
-    "http://localhost:5000/api/users/signup",
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-  toast.dismiss();
-  if (response.status === 201) {
-    toast.success(
-      "Your request has been submitted successfully. You will be notified after verification."
-    );
-    if (signupFormRef.current) {
-      signupFormRef.current.reset();
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/users/signup",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      toast.dismiss();
+      if (response.status === 201) {
+        toast.success(
+          "Your request has been submitted successfully. You will be notified after verification."
+        );
+        if (signupFormRef.current) {
+          signupFormRef.current.reset();
+        }
+      } else {
+        toast.error("Signup failed. Please try again.");
+      }
+    } catch (err) {
+      toast.dismiss();
+      toast.error(
+        err.response?.data?.message || "Signup failed. Please try again."
+      );
     }
-  } else {
-    toast.error("Signup failed. Please try again.");
-  }
-} catch (err) {
-  toast.dismiss();
-  toast.error(
-    err.response?.data?.message || "Signup failed. Please try again."
-  );
-}
 
   };
 
@@ -90,49 +90,68 @@ try {
 
 
   const handleLoginSubmit = async (e) => {
-  e.preventDefault();
-  const formData = new FormData(loginFormRef.current);
-  const email = formData.get("email");
-  const password = formData.get("password");
+    e.preventDefault();
+    const formData = new FormData(loginFormRef.current);
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-  toast.loading("Logging in...");
-  try {
-    // Try user login first
-    const userRes = await axios.post(
-      "http://localhost:5000/api/users/login",
-      { email, password },
-      { withCredentials: true }
-    );
-    toast.dismiss();
-    if (userRes.data.success) {
-      toast.success("User login successful!");
-      navigate("/dashboard");
-      return;
-    }
-  } catch (userErr) {
-    // If user login fails, try admin login
+    toast.loading("Logging in...");
     try {
-      const adminRes = await axios.post(
-        "http://localhost:5000/api/admin/login",
+      // Try user login first
+      const userRes = await axios.post(
+        "http://localhost:5000/api/users/login",
         { email, password },
         { withCredentials: true }
       );
       toast.dismiss();
-      if (adminRes.data.message === "Login successful" || adminRes.data.adminId) {
-        toast.success("Admin login successful!");
-        navigate("/googleadmin");
+      // if (userRes.data.success) {
+
+      //   localStorage.setItem("authType", "user"); // <-- set here
+      //   // localStorage.removeItem("userName");
+      //   localStorage.setItem("userName", response.data.user.name); // or whatever field is correct
+      //   toast.success("User login successful!");
+      //   navigate("/dashboard");
+      //   // After successful user login
+       
+      //   return;
+      // }
+            if (userRes.data.success) {
+        localStorage.setItem("authType", "user");
+        localStorage.setItem("userName", userRes.data.user.fullName); // <-- FIXED
+        toast.success("User login successful!");
+        navigate("/dashboard");
+        window.location.reload();
         return;
-      } else {
-        toast.error(adminRes.data.message || "Login failed.");
       }
-    } catch (adminErr) {
-      toast.dismiss();
-      toast.error(
-        adminErr.response?.data?.message || "Login failed. Please try again."
-      );
+    } catch (userErr) {
+      // If user login fails, try admin login
+      try {
+        const adminRes = await axios.post(
+          "http://localhost:5000/api/admin/login",
+          { email, password },
+          { withCredentials: true }
+        );
+        toast.dismiss();
+        if (adminRes.data.message === "Login successful" || adminRes.data.adminId) {
+          
+          localStorage.setItem("authType", "admin"); // <-- set here
+          localStorage.removeItem("userName");
+          toast.success("Admin login successful!");
+          navigate("/googleadmin");
+          window.location.reload();
+          // After successful admin login
+          return;
+        } else {
+          toast.error(adminRes.data.message || "Login failed.");
+        }
+      } catch (adminErr) {
+        toast.dismiss();
+        toast.error(
+          adminErr.response?.data?.message || "Login failed. Please try again."
+        );
+      }
     }
-  }
-};
+  };
 
 
 

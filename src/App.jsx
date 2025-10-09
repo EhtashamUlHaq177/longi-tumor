@@ -11,6 +11,9 @@ import Dashboard from './pages/dashboard/Dashboard';
 import AdminRequests from './pages/admin/AdminRequests';
 import AdminLogin from './pages/adminlogin/AdminLogin';
 import NotFound from './pages/notfound/NotFound';
+import Reports from './pages/reports/Reports';
+
+
 
 
 
@@ -31,6 +34,7 @@ function App() {
           <Route path='/dashboard' element={<Dashboard/>} />
           <Route path='/googleadmin' element={<AdminRequests/>} />
           <Route path='/adminlogin' element={<AdminLogin/>} />
+          <Route path="/reports" element={<Reports/>} />
           <Route path='*' element={<NotFound/>  } />
         </Routes>
       <Footer/>
