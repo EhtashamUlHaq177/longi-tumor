@@ -23,7 +23,8 @@ export default function Dashboard() {
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [newPatient, setNewPatient] = useState({ name: "", age: "", gender: "" });
 
-
+  // ADD: analyzing state
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const navigate = useNavigate();
   const [editPatientId, setEditPatientId] = useState(null);
@@ -211,6 +212,14 @@ export default function Dashboard() {
           formData.append("files", file);
         });
       }
+      
+      setIsAnalyzing(true);
+      const toastId = toast.loading("Generating result... This may take a while",{autoClose: false,
+      closeButton: false,
+      closeOnClick: false,
+      draggable: false
+    });
+
   
       formData.append("patientId", selectedPatient._id);
   
@@ -223,13 +232,29 @@ export default function Dashboard() {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
+
+      toast.update(toastId, {
+        render: "Analysis completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000
+      });
+      
+
+
       setAnalysisResult(res.data.result || res.data);
+
       toast.success(`${type === "explore" ? "Explore" : "Compare"} analysis completed`);
     } catch (error) {
       console.error("Analysis error:", error);
       toast.error("Error running analysis");
       setAnalysisResult({ success: false, message: "Could not complete analysis" });
     }
+
+    finally {
+      setIsAnalyzing(false);
+    }
+
   };
 
   const handleSaveHistory = async () => {
@@ -413,11 +438,12 @@ export default function Dashboard() {
           {/* Explore */}
           <div className="mb-6 p-4 border rounded-lg bg-white shadow-sm">
             <h3 className="text-lg font-semibold mb-2 text-gray-700">Explore (Single MRI)</h3>
-            <input type="file" onChange={handleExploreUpload} />
+            <input type="file" onChange={handleExploreUpload} className="cursor-pointer " />
             {exploreFile && <p className="text-sm mt-1 text-gray-500">Uploaded: {exploreFile.name}</p>}
             <button
               onClick={() => handleRunAnalysis("explore")}
-              className="mt-3 bg-[var(--medical-red)] text-white py-2 px-4 rounded-lg hover:bg-red-700"
+              disabled={isAnalyzing}
+              className="mt-3 bg-[var(--medical-red)] text-white py-2 px-4 rounded-lg hover:bg-red-700 cursor-pointer"
             >
               Run Explore Analysis
             </button>
@@ -426,7 +452,7 @@ export default function Dashboard() {
           {/* Compare */}
           <div className="p-4 border rounded-lg bg-white shadow-sm">
             <h3 className="text-lg font-semibold mb-2 text-gray-700">Compare (Two MRIs)</h3>
-            <input type="file" multiple onChange={handleCompareUpload} />
+            <input type="file" multiple onChange={handleCompareUpload} className="cursor-pointer" />
             {compareFiles.length > 0 && (
               <p className="text-sm mt-1 text-gray-500">
                 Uploaded: {compareFiles.map((f) => f.name).join(", ")}
@@ -434,7 +460,7 @@ export default function Dashboard() {
             )}
             <button
               onClick={() => handleRunAnalysis("compare")}
-              className="mt-3 bg-[var(--medical-red)] text-white py-2 px-4 rounded-lg hover:bg-red-700"
+              className="mt-3 bg-[var(--medical-red)] text-white py-2 px-4 rounded-lg hover:bg-red-700 cursor-pointer"
             >
               Run Compare Analysis
             </button>
@@ -636,7 +662,7 @@ export default function Dashboard() {
         
         <button
           onClick={() => navigate("/reports")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
         >
           View Records
         </button>
@@ -646,7 +672,7 @@ export default function Dashboard() {
       <div className="flex justify-end mb-4">
         <button
           onClick={handleUserLogout}
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 cursor-pointer"
         >
           Logout
         </button>

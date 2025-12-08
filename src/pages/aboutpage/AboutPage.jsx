@@ -28,8 +28,8 @@ export default function About() {
             className="rounded-3xl shadow-xl border-4 border-[var(--medical-red)]"
           />
           <div className="absolute -bottom-6 -right-6 bg-[var(--medical-red)] text-white px-6 py-4 rounded-xl shadow-lg">
-            <span className="block text-2xl font-bold">5+</span>
-            <span className="text-sm">Years of AI Research</span>
+            <span className="block text-2xl font-bold">Make</span>
+            <span className="text-sm">Life better with us</span>
           </div>
         </div>
         <div>

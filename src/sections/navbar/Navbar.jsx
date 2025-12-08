@@ -85,7 +85,7 @@ export default function Navbar() {
             {/* Always show Login button on landing page */}
             {isLanding ? (
               <Link to='/auth'>
-                <Button>Login</Button>
+                <Button className="cursor-pointer bg-[#d61e1e] hover:bg-[rgb(214,30,50)]" >Login</Button>
               </Link>
             ) : (
               <>
@@ -102,7 +102,7 @@ export default function Navbar() {
                 )}
                 {!authType && !isLanding && (
                   <Link to='/auth'>
-                    <Button>Login</Button>
+                    <Button className="cursor-pointer bg-[#d61e1e] hover:bg-[rgb(214,30,50)]">Login</Button>
                   </Link>
                 )}
               </>
@@ -132,7 +132,7 @@ export default function Navbar() {
 
           {isLanding ? (
             <Link to='/auth'>
-              <Button variant="outline" className="w-full border-white hover:bg-white hover:text-primary" onClick={handlenavClick}>Login</Button>
+              <Button variant="outline" className="w-full border-white hover:bg-white hover:text-primary " onClick={handlenavClick}>Login</Button>
             </Link>
           ) : (
             <>
@@ -148,7 +148,7 @@ export default function Navbar() {
               )}
               {!authType && (
                 <Link to='/auth'>
-                  <Button variant="outline" className="w-full border-white hover:bg-white hover:text-primary" onClick={handlenavClick}>Login</Button>
+                  <Button variant="outline" className="w-full  border-white hover:bg-white hover:text-primary " onClick={handlenavClick}>Login</Button>
                 </Link>
               )}
             </>

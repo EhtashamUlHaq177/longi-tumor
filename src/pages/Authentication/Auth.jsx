@@ -159,7 +159,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 mt-20">
       <Toaster position="top-right" reverseOrder={false} />
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md border-t-4 border-[var(--medical-red)]">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        <h2 className="text-3xl font-bold text-center  text-gray-800 mb-6  ">
           {isLogin ? "Login" : "Sign Up"}
         </h2>
 
