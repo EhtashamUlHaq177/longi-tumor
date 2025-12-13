@@ -95,7 +95,7 @@ const handleAdminLogout = async () => {
     <div className="flex justify-end mb-4">
   <button
     onClick={handleAdminLogout}
-    className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+    className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 cursor-pointer"
   >
     Logout
   </button>
@@ -110,7 +110,7 @@ const handleAdminLogout = async () => {
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg border ${
+            className={`px-4 py-2 rounded-lg border cursor-pointer ${
               filterStatus === status
                 ? "bg-[var(--medical-red)] text-white"
                 : "bg-white text-gray-700 hover:bg-gray-100"
@@ -157,7 +157,7 @@ const handleAdminLogout = async () => {
                     {filterStatus === "Pending" && (
                       <button
                         onClick={() => setSelectedRequest(req)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition cursor-pointer"
                       >
                         View
                       </button>
@@ -246,13 +246,13 @@ const handleAdminLogout = async () => {
             <div className="flex justify-end mt-6 space-x-3">
               <button
                 onClick={() => handleDisapprove(selectedRequest._id)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer"
               >
                 Disapprove
               </button>
               <button
                 onClick={() => handleApprove(selectedRequest._id)}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 cursor-pointer"
               >
                 Approve
               </button>

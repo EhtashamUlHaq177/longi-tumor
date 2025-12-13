@@ -182,7 +182,7 @@ export default function Auth() {
             />
             <button
               type="submit"
-              className="w-full bg-[var(--medical-red)] hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition"
+              className="w-full bg-[var(--medical-red)] hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition cursor-pointer"
             >
               Login
             </button>
@@ -245,7 +245,7 @@ export default function Auth() {
             />
             <button
               type="submit"
-              className="w-full bg-[var(--medical-red)] hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition"
+              className="w-full bg-[var(--medical-red)] hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition cursor-pointer"
             >
               Submit Request
             </button>

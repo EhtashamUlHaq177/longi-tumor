@@ -110,7 +110,7 @@ export default function Dashboard() {
       toast.success("Patient added successfully");
       setShowPatientModal(false);
       setNewPatient({ name: "", age: "", gender: "" });
-    } catch (error) {
+    } catch (error) { 
       console.error("Error adding patient:", error);
       toast.error("Failed to add patient");
     }
@@ -138,52 +138,6 @@ export default function Dashboard() {
     toast.info("Multiple MRIs uploaded for Compare");
   };
 
-  // ✅ Run analysis
-  // const handleRunAnalysis = async (type) => {
-  //   try {
-  //     const formData = new FormData(); // only declared once ✅
-
-  //     if (type === "explore") {
-  //       if (!exploreFile) {
-  //         toast.error("Please upload a single MRI for Explore");
-  //         return;
-  //       }
-  //       formData.append("mri", exploreFile); // backend expects "mri"
-  //     }
-  //     else if (type === "compare") {
-  //       if (compareFiles.length < 2) {
-  //         toast.error("Please upload at least 2 MRIs for Compare");
-  //         return;
-  //       }
-  //       compareFiles.forEach((file) => {
-  //         formData.append("files", file); // backend expects "mris"
-  //       });
-  //     }
-
-  //     if (selectedPatient?._id) {
-  //       formData.append("patientId", selectedPatient._id);
-  //     }
-
-  //     const endpoint =
-  //       type === "explore"
-  //         ? "http://localhost:5000/api/mri/upload"
-  //         : "http://localhost:5000/api/mri/compare";
-
-  //     const res = await axios.post(endpoint, formData, {
-  //       headers: { "Content-Type": "multipart/form-data" },
-  //     });
-
-  //     // normalize response
-  //     setAnalysisResult(res.data.result || res.data);
-
-  //     toast.success(`${type === "explore" ? "Explore" : "Compare"} analysis completed`);
-
-  //   } catch (error) {
-  //     console.error("Analysis error:", error);
-  //     toast.error("Error running analysis");
-  //     setAnalysisResult({ success: false, message: "Could not complete analysis" });
-  //   }
-  // };
 
 
 
@@ -234,17 +188,13 @@ export default function Dashboard() {
   
 
       toast.update(toastId, {
-        render: "Analysis completed successfully!",
+        render: `${type === "explore" ? "Explore" : "Compare"} analysis completed successfully!`,
         type: "success",
         isLoading: false,
-        autoClose: 3000
+        autoClose: 3000,
       });
-      
-
 
       setAnalysisResult(res.data.result || res.data);
-
-      toast.success(`${type === "explore" ? "Explore" : "Compare"} analysis completed`);
     } catch (error) {
       console.error("Analysis error:", error);
       toast.error("Error running analysis");
@@ -289,8 +239,8 @@ export default function Dashboard() {
         {/* Patient Modal */}
         {showPatientModal && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-xl shadow-lg w-96">
-              <h2 className="text-lg font-bold mb-4">Add Patient</h2>
+            <div className="bg-white p-6 rounded-xl shadow-lg w-96 ">
+              <h2 className="text-lg font-bold mb-4 cursor-pointer">Add Patient</h2>
 
               <input
                 type="text"
@@ -318,13 +268,13 @@ export default function Dashboard() {
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   onClick={() => setShowPatientModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded"
+                  className="px-4 py-2 bg-gray-300 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSavePatient}
-                  className="px-4 py-2 bg-[var(--medical-red)] text-white rounded"
+                  className="px-4 py-2 bg-[var(--medical-red)] text-white rounded cursor-pointer"
                 >
                   Save
                 </button>
@@ -396,33 +346,9 @@ export default function Dashboard() {
 
 
 
-          {/* <ul className="space-y-2">
-          {patients.map((p) => (
-            
-
-            <li
-              key={p._id}
-              onClick={() => {
-                setSelectedPatient(p);
-                setAnalysisResult(null); 
-              }}
-              className={`p-2 rounded-lg cursor-pointer ${selectedPatient?._id === p._id ? "bg-red-100" : "hover:bg-gray-100"
-                }`}
-            >
-
-
-
-              <p className="font-medium">{p.name}</p>
-              <p className="text-xs text-gray-500">
-                Age: {p.age}, Gender: {p.gender}
-              </p>
-            </li>
-          ))}
-        </ul> */}
-
           <button
             onClick={() => setShowPatientModal(true)}
-            className="mt-4 w-full bg-[var(--medical-red)] text-white py-2 rounded-lg hover:bg-red-700"
+            className="mt-4 w-full bg-[var(--medical-red)] text-white py-2 rounded-lg hover:bg-red-700 cursor-pointer"
           >
             + Add Patient
           </button>
@@ -486,19 +412,7 @@ export default function Dashboard() {
                 <strong>Gender:</strong> {selectedPatient.gender}
               </p>
 
-              {/* <div className="mt-4 flex items-center">
-                <input
-                  type="checkbox"
-                  id="saveHistory"
-                  checked={saveToHistory}
-                  onChange={(e) => setSaveToHistory(e.target.checked)}
-                  className="mr-2"
-                />
-
-                <label htmlFor="saveHistory">Save results to history</label>
-              </div> */}
-
-
+  
               {analysisResult && saveToHistory && (
                 <button
                   onClick={handleSaveHistory}
@@ -530,13 +444,14 @@ export default function Dashboard() {
                       : "N/A"}
                   </p>
 
+
                   {/* ✅ Report Summary */}
                   <div className="mt-4 border-t pt-2 text-sm text-gray-600">
                     <p><strong>Report Summary:</strong></p>
                     <p>Analysis Type: {analysisResult.type || "Unknown"}</p>
                     <p>Patient: {selectedPatient.name}</p>
                     <p>Date: {new Date().toLocaleString()}</p>
-                    <p>Saved to history: {saveToHistory ? "Yes" : "No"}</p>
+                    
                   </div>
                 </div>
               )}
@@ -550,12 +465,12 @@ export default function Dashboard() {
 
       {/* Bottom Section: Detailed Report */}
 
-      <div className="mt-6 p-4 border rounded-lg bg-white shadow-sm">
+      {/* <div className="mt-6 p-4 border rounded-lg bg-white shadow-sm">
         <h3 className="text-lg font-semibold mb-2 text-gray-700">Detailed Report</h3>
 
         {analysisResult ? (
           <div className="p-3 border rounded-lg bg-gray-50 space-y-4">
-            {/* General Info */}
+            
             <div>
               <p><strong>Status:</strong> {analysisResult.success ? "✅ Success" : "❌ Failed"}</p>
               <p><strong>Message:</strong> {analysisResult.message || "N/A"}</p>
@@ -568,7 +483,7 @@ export default function Dashboard() {
               </p>
             </div>
 
-            {/* Tumor Info */}
+           
             {analysisResult.tumor_info && (
               <div>
                 <h4 className="font-semibold text-gray-700 mb-1">Tumor Info</h4>
@@ -578,7 +493,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Survival Estimate */}
+          
             {analysisResult.survival_days && (
               <div>
                 <h4 className="font-semibold text-gray-700 mb-1">Survival Estimate</h4>
@@ -587,7 +502,7 @@ export default function Dashboard() {
             )}
 
 
-            {/* Recommendations */}
+         
             {analysisResult.recommendations && (
               <div>
                 <h4 className="font-semibold text-gray-700 mb-1">Treatment Recommendations</h4>
@@ -601,7 +516,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Risk */}
+           
             {analysisResult.risk && (
               <div>
                 <h4 className="font-semibold text-gray-700 mb-1">Risk Assessment</h4>
@@ -615,7 +530,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Progression (only for compare) */}
+            
             {analysisResult.progression && (
               <div>
                 <h4 className="font-semibold text-gray-700 mb-1">Progression Analysis</h4>
@@ -644,7 +559,7 @@ export default function Dashboard() {
 
 
 
-            {/* Report Summary */}
+          
             <div className="mt-4 border-t pt-2 text-sm text-gray-600">
               <p><strong>Report Summary:</strong></p>
               <p>Analysis Type: {analysisResult.type || "Unknown"}</p>
@@ -656,7 +571,163 @@ export default function Dashboard() {
         ) : (
           <p className="text-gray-500">No analysis report yet</p>
         )}
-      </div>
+      </div> */}
+
+      <div className="mt-8 p-6 bg-white shadow-lg rounded-lg border max-w-4xl mx-auto">
+
+  {/* Header */}
+  <div className="flex justify-between items-center border-b pb-4">
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800">Brain Tumor Analysis Report</h1>
+      
+    </div>
+
+    <img
+      src="/Logo.png"
+      alt="Medical Logo"
+      className="h-12 opacity-80"
+    />
+  </div>
+
+  {analysisResult ? (
+    <div className="space-y-8 pt-6">
+
+      {/* Supplier / Patient Information */}
+      <section className="border p-4 rounded-md bg-gray-50">
+        <h2 className="font-semibold text-gray-700 text-lg mb-3">Patient Information</h2>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <p><strong>Patient Name:</strong> {selectedPatient?.name || "N/A"}</p>
+          <p><strong>Gender:</strong> {selectedPatient?.gender || "N/A"}</p>
+          <p><strong>Analysis Type:</strong> {analysisResult.type || "N/A"}</p>
+          <p><strong>Date:</strong> {new Date().toLocaleString()}</p>
+        </div>
+      </section>
+
+      {/* Classifier Results */}
+      <section className="border p-4 rounded-md bg-white">
+        <h2 className="font-semibold text-gray-700 text-lg mb-3">
+          Tumor Classification Results
+        </h2>
+
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p><strong>Status:</strong> {analysisResult.success ? "✔ Success" : "✘ Failed"}</p>
+            <p><strong>Message:</strong> {analysisResult.message}</p>
+            <p><strong>Tumor Detected:</strong> {analysisResult.tumorDetected ? "Yes" : "No"}</p>
+          </div>
+
+          <div>
+            <p><strong>Tumor Type:</strong> {analysisResult.tumorType || "N/A"}</p>
+            <p><strong>Confidence Score:</strong> 
+              {analysisResult.confidence
+                ? (analysisResult.confidence * 100).toFixed(2) + "%"
+                : "N/A"}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Tumor Detailed Info */}
+      {analysisResult.tumor_info && (
+        <section className="border p-4 rounded-md bg-gray-50">
+          <h2 className="font-semibold text-gray-700 text-lg mb-3">Tumor Details</h2>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <p><strong>Probability:</strong> {analysisResult.tumor_info.probability?.toFixed(3)}</p>
+            <p><strong>Grade:</strong> {analysisResult.tumor_info.grade}</p>
+            <p><strong>Uncertainty:</strong> {analysisResult.tumor_info.uncertainty}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Survival Estimate */}
+      {analysisResult.survival_days && (
+        <section className="border p-4 rounded-md bg-white">
+          <h2 className="font-semibold text-gray-700 text-lg mb-3">Survival Estimate</h2>
+          <p className="text-sm">
+            Estimated Survival Duration:
+            <strong className="ml-1">{analysisResult.survival_days} days</strong>
+          </p>
+        </section>
+      )}
+
+      {/* Recommendations */}
+      {analysisResult.recommendations && (
+        <section className="border p-4 rounded-md bg-gray-50">
+          <h2 className="font-semibold text-gray-700 text-lg mb-3">Treatment Recommendations</h2>
+
+          <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
+            {analysisResult.recommendations.map((rec, idx) => (
+              <li key={idx}>
+                {rec[0]} <span className="text-gray-500 text-xs">({rec[1]})</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Risk Assessment */}
+      {analysisResult.risk && (
+        <section className="border p-4 rounded-md bg-white">
+          <h2 className="font-semibold text-gray-700 text-lg mb-3">Risk Assessment</h2>
+
+          <div className="text-sm">
+            <p>
+              <strong>Risk Level:</strong>
+              <span className="font-bold" style={{ color: analysisResult.risk.color }}>
+                {" "}{analysisResult.risk.level}
+              </span>
+            </p>
+            <p><strong>Risk Score:</strong> {analysisResult.risk.score.toFixed(2)}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Longitudinal Progression */}
+      {analysisResult.progression && (
+        <section className="border p-4 rounded-md bg-gray-50">
+          <h2 className="font-semibold text-gray-700 text-lg mb-3">Longitudinal Progression</h2>
+
+          <div className="space-y-3">
+            {analysisResult.progression.timepoints?.map((tp, idx) => (
+              <div key={idx} className="border p-3 rounded bg-white text-sm">
+                <p><strong>Timepoint {tp.index}</strong></p>
+                <p>Volume: {tp.volume}</p>
+                <p>Probability: {tp.tumor_info?.probability?.toFixed(3)}</p>
+                <p>Grade: {tp.tumor_info?.grade}</p>
+              </div>
+            ))}
+          </div>
+
+          {analysisResult.progression.summary && (
+            <div className="mt-3 p-3 border rounded bg-white text-sm">
+              <p><strong>Status:</strong> {analysisResult.progression.summary.status}</p>
+              <p><strong>RANO:</strong> {analysisResult.progression.summary.rano}</p>
+              <p><strong>Probability Change:</strong> {analysisResult.progression.summary.prob_change.toFixed(3)}</p>
+              <p><strong>Volume Change %:</strong> {analysisResult.progression.summary.vol_change_pct.toFixed(2)}%</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Final Summary */}
+      <section className="border-t pt-4 text-sm text-gray-600">
+        <h3 className="font-semibold text-gray-700 mb-1">Report Summary</h3>
+        <div className="mt-4 border-t pt-2 text-sm text-gray-600">
+                    
+                    <p>Analysis Type: {analysisResult.type || "Unknown"}</p>
+                    <p>Patient: {selectedPatient.name}</p>
+                    <p>Date: {new Date().toLocaleString()}</p>
+                    
+                  </div>
+      </section>
+
+    </div>
+  ) : (
+    <p className="text-gray-500">No analysis report yet</p>
+  )}
+</div>
+
 
       <div className="flex justify-end my-4 gap-2">
         
