@@ -51,45 +51,23 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8 items-center">
-            <Link to='/'>      <p className="text-white hover:text-gray-200">Home</p></Link>
-            <Link to='/about'>    <p className="text-white hover:text-gray-200">About</p></Link>
-            <Link to='/howtouse'>     <p className="text-white hover:text-gray-200">How to Use</p></Link>
-            <Link to='/contact'>     <p className="text-white hover:text-gray-200">Contact</p>  </Link>
-            {/* <Link to='login'>      <Button variant="secondary" className="bg-white text-primary hover:bg-gray-100 cursor-pointer">Login</Button></Link> */}
+            {/* Show nav tabs only if NOT logged in */}
+            {!authType && (
+              <>
+                <Link to='/'>      <p className="text-white hover:text-gray-200">Home</p></Link>
+                <Link to='/about'>    <p className="text-white hover:text-gray-200">About</p></Link>
+                <Link to='/howtouse'>     <p className="text-white hover:text-gray-200">How to Use</p></Link>
+                <Link to='/contact'>     <p className="text-white hover:text-gray-200">Contact</p>  </Link>
+              </>
+            )}
 
-
-            {/* <Link to='/auth'>    <Button variant="outline" className="border-white  hover:bg-white hover:text-primary  cursor-pointer">Login</Button></Link> */}
-
-
-
-
-            {/* {authType === "user" && (
-          <span className="flex items-center gap-2 text-black font-semibold">
-            <span role="img" aria-label="user">👤</span> User
-          </span>
-        )}  
-
-        {authType === "admin" && (
-          <span className="flex items-center gap-2 text-black font-semibold">
-            <span role="img" aria-label="admin">👨‍⚕️</span> Admin
-          </span>
-        )}
-        
-        {!authType && (
-          <Link to='/auth'>
-            <Button variant="outline" className="w-full border-white hover:bg-white hover:text-primary" onClick={handlenavClick}>Login</Button>
-          </Link>
-        )} */}
-
-
-            {/* Always show Login button on landing page */}
-            {isLanding ? (
+            {/* Show Login button on all pages when not logged in */}
+            {!authType ? (
               <Link to='/auth'>
-                <Button className="cursor-pointer bg-[#d61e1e] hover:bg-[rgb(214,30,50)]" >Login</Button>
+                <Button className="cursor-pointer bg-[#d61e1e] hover:bg-[rgb(214,30,50)]">Login</Button>
               </Link>
             ) : (
               <>
-
                 {authType === "user" && userName && (
                   <span className="flex items-center gap-2 font-semibold text-gray-700">
                     <span role="img" aria-label="user">👤</span> {userName}
@@ -97,17 +75,11 @@ export default function Navbar() {
                 )}
                 {authType === "admin" && (
                   <span className="flex items-center gap-2 font-semibold text-gray-700">
-                    <span role="img" aria-label="admin">👨‍⚕️</span> Admin
+                    <span role="img" aria-label="admin">👨‍⚕️</span> {userName}
                   </span>
-                )}
-                {!authType && !isLanding && (
-                  <Link to='/auth'>
-                    <Button className="cursor-pointer bg-[#d61e1e] hover:bg-[rgb(214,30,50)]">Login</Button>
-                  </Link>
                 )}
               </>
             )}
-
 
           </div>
 
@@ -123,14 +95,18 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-white px-4 pb-4 space-y-2">
-          <Link to='/'>   <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>Home</p></Link>
-          <Link to='/about'> <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>About</p> </Link>
-          <Link to='/howtouse'>  <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>How to Use</p></Link>
-          <Link to='/contact'> <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>Contact</p></Link>
-          {/* <Link to='login'>  <Button variant="secondary" className="w-full bg-white text-primary hover:bg-gray-100">Login</Button></Link> */}
-          {/* <Link to='/auth'>  <Button variant="outline" className="w-full border-white hover:bg-white hover:text-primary" onClick={handlenavClick}>Login</Button></Link> */}
+          {/* Show nav tabs only if NOT logged in */}
+          {!authType && (
+            <>
+              <Link to='/'>   <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>Home</p></Link>
+              <Link to='/about'> <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>About</p> </Link>
+              <Link to='/howtouse'>  <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>How to Use</p></Link>
+              <Link to='/contact'> <p className="block text-black border-b-2 hover:text-gray-200" onClick={handlenavClick}>Contact</p></Link>
+            </>
+          )}
 
-          {isLanding ? (
+          {/* Show Login button on all pages when not logged in */}
+          {!authType ? (
             <Link to='/auth'>
               <Button variant="outline" className="w-full border-white hover:bg-white hover:text-primary " onClick={handlenavClick}>Login</Button>
             </Link>
@@ -143,13 +119,8 @@ export default function Navbar() {
               )}
               {authType === "admin" && (
                 <span className="flex items-center gap-2 font-semibold text-gray-700">
-                  <span role="img" aria-label="admin">👨‍⚕️</span> Admin
+                  <span role="img" aria-label="admin">👨‍⚕️</span> {userName}
                 </span>
-              )}
-              {!authType && (
-                <Link to='/auth'>
-                  <Button variant="outline" className="w-full  border-white hover:bg-white hover:text-primary " onClick={handlenavClick}>Login</Button>
-                </Link>
               )}
             </>
           )}

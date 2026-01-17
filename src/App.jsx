@@ -7,9 +7,10 @@ import Footer from './sections/footer/Footer';
 import HowToUse from './pages/howtousepage/HowToUse';
 import Contact from './pages/contactus/Contact';
 import Auth from './pages/Authentication/Auth';
+import ForgotPassword from './pages/Authentication/ForgotPassword';
+import ResetPassword from './pages/Authentication/ResetPassword';
 import Dashboard from './pages/dashboard/Dashboard';
 import AdminRequests from './pages/admin/AdminRequests';
-import AdminLogin from './pages/adminlogin/AdminLogin';
 import NotFound from './pages/notfound/NotFound';
 import Reports from './pages/reports/Reports';
 
@@ -31,9 +32,11 @@ function App() {
           <Route path='/howtouse' element={<HowToUse/>} />
           <Route path='/contact' element={<Contact/>} />
           <Route path='/auth' element={<Auth/>} />
+          <Route path='/forgot-password' element={<ForgotPassword/>} />
+          <Route path='/reset-password' element={<ResetPassword/>} />
           <Route path='/dashboard' element={<Dashboard/>} />
           <Route path='/googleadmin' element={<AdminRequests/>} />
-          <Route path='/adminlogin' element={<AdminLogin/>} />
+          
           <Route path="/reports" element={<Reports/>} />
           <Route path='*' element={<NotFound/>  } />
         </Routes>

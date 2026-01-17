@@ -1,7 +1,10 @@
 // Dashboard.js
 import React, { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import PatientModal from "../../components/ui/PatientModal";
+
+
+import PatientModal from "../../components/ui/PatientModal.jsx";
+
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,12 +13,60 @@ import { FaTrash, FaEdit } from "react-icons/fa"; // npm install react-icons
 
 
 
+
 export default function Dashboard() {
+  // Change Password Modal State
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const handlePasswordChange = (e) => {
+    setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+  };
+
+  const submitPasswordChange = async (e) => {
+    e.preventDefault();
+    if (!passwordForm.current || !passwordForm.newPass || !passwordForm.confirm) {
+      toast.error("All fields are required");
+      return;
+    }
+    if (passwordForm.newPass !== passwordForm.confirm) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/users/change-password",
+        {
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.newPass,
+        },
+        { withCredentials: true }
+      );
+      setPasswordLoading(false);
+      if (res.data.success) {
+        toast.success("Password changed successfully!");
+        setShowChangePassword(false);
+        setPasswordForm({ current: "", newPass: "", confirm: "" });
+      } else {
+        toast.error(res.data.message || "Failed to change password");
+      }
+    } catch (err) {
+      setPasswordLoading(false);
+      toast.error(
+        err.response?.data?.message || "Failed to change password"
+      );
+    }
+  };
+
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   const [exploreFile, setExploreFile] = useState(null);
-  const [compareFiles, setCompareFiles] = useState([]);
+  // Compare now uses two separate files: first and latest timestamp
+  const [compareFirstFile, setCompareFirstFile] = useState(null);
+  const [compareLatestFile, setCompareLatestFile] = useState(null);
   const [saveToHistory, setSaveToHistory] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
 
@@ -128,14 +179,22 @@ export default function Dashboard() {
     }
   };
 
-  const handleCompareUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length < 2) {
-      toast.error("Please upload at least 2 MRI scans for Compare");
-      return;
+  
+  // Separate handlers for each compare file input
+  const handleCompareFirstUpload = (e) => {
+    const file = e.target.files[0];
+    setCompareFirstFile(file || null);
+    if (file) {
+      toast.info("1st timestamp MRI uploaded");
     }
-    setCompareFiles(files);
-    toast.info("Multiple MRIs uploaded for Compare");
+  };
+
+  const handleCompareLatestUpload = (e) => {
+    const file = e.target.files[0];
+    setCompareLatestFile(file || null);
+    if (file) {
+      toast.info("Latest timestamp MRI uploaded");
+    }
   };
 
 
@@ -158,13 +217,12 @@ export default function Dashboard() {
         }
         formData.append("mri", exploreFile);
       } else if (type === "compare") {
-        if (compareFiles.length < 2) {
-          toast.error("Please upload at least 2 MRIs for Compare");
+        if (!compareFirstFile || !compareLatestFile) {
+          toast.error("Please upload both 1st and latest timestamp MRIs for Compare");
           return;
         }
-        compareFiles.forEach((file) => {
-          formData.append("files", file);
-        });
+        formData.append("first_mri", compareFirstFile);
+        formData.append("latest_mri", compareLatestFile);
       }
       
       setIsAnalyzing(true);
@@ -364,7 +422,7 @@ export default function Dashboard() {
           {/* Explore */}
           <div className="mb-6 p-4 border rounded-lg bg-white shadow-sm">
             <h3 className="text-lg font-semibold mb-2 text-gray-700">Explore (Single MRI)</h3>
-            <input type="file" onChange={handleExploreUpload} className="cursor-pointer " />
+            <input type="file" onChange={handleExploreUpload} className="flex w-60 text-lg text-black border border-gray-400 rounded-lg  cursor-pointer bg-gray-200  " />
             {exploreFile && <p className="text-sm mt-1 text-gray-500">Uploaded: {exploreFile.name}</p>}
             <button
               onClick={() => handleRunAnalysis("explore")}
@@ -378,12 +436,18 @@ export default function Dashboard() {
           {/* Compare */}
           <div className="p-4 border rounded-lg bg-white shadow-sm">
             <h3 className="text-lg font-semibold mb-2 text-gray-700">Compare (Two MRIs)</h3>
-            <input type="file" multiple onChange={handleCompareUpload} className="cursor-pointer" />
-            {compareFiles.length > 0 && (
-              <p className="text-sm mt-1 text-gray-500">
-                Uploaded: {compareFiles.map((f) => f.name).join(", ")}
-              </p>
-            )}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-700 font-medium">1st Timestamp MRI</label>
+              <input type="file" onChange={handleCompareFirstUpload} className="flex w-60 text-lg text-black border border-gray-400 rounded-lg  cursor-pointer bg-gray-200  " />
+              {compareFirstFile && (
+                <p className="text-xs text-gray-500">Uploaded: {compareFirstFile.name}</p>
+              )}
+              <label className="text-sm text-gray-700 font-medium mt-2">Latest Timestamp MRI</label>
+              <input type="file" onChange={handleCompareLatestUpload} className="flex w-60 text-lg text-black border border-gray-400 rounded-lg  cursor-pointer bg-gray-200  " />
+              {compareLatestFile && (
+                <p className="text-xs text-gray-500">Uploaded: {compareLatestFile.name}</p>
+              )}
+            </div>
             <button
               onClick={() => handleRunAnalysis("compare")}
               className="mt-3 bg-[var(--medical-red)] text-white py-2 px-4 rounded-lg hover:bg-red-700 cursor-pointer"
@@ -400,6 +464,62 @@ export default function Dashboard() {
         <div className="w-1/4 bg-white shadow-lg p-4 border-l">
           <h2 className="text-lg font-bold text-gray-700 mb-4">Patient Details</h2>
 
+         
+
+          {/* Change Password Modal */}
+          {showChangePassword && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-xl shadow-lg w-96 ">
+                <h2 className="text-lg font-bold mb-4">Change Password</h2>
+                <form onSubmit={submitPasswordChange} className="space-y-4">
+                  <input
+                    type="password"
+                    name="current"
+                    placeholder="Current Password"
+                    value={passwordForm.current}
+                    onChange={handlePasswordChange}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <input
+                    type="password"
+                    name="newPass"
+                    placeholder="New Password"
+                    value={passwordForm.newPass}
+                    onChange={handlePasswordChange}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <input
+                    type="password"
+                    name="confirm"
+                    placeholder="Confirm New Password"
+                    value={passwordForm.confirm}
+                    onChange={handlePasswordChange}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowChangePassword(false)}
+                      className="px-4 py-2 bg-gray-300 rounded cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer"
+                      disabled={passwordLoading}
+                    >
+                      {passwordLoading ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {selectedPatient ? (
             <div>
               <p>
@@ -412,7 +532,6 @@ export default function Dashboard() {
                 <strong>Gender:</strong> {selectedPatient.gender}
               </p>
 
-  
               {analysisResult && saveToHistory && (
                 <button
                   onClick={handleSaveHistory}
@@ -747,7 +866,18 @@ export default function Dashboard() {
         >
           Logout
         </button>
+        
       </div>
+       <div className="justify-end mb-2">
+      {/* Change Password Button */}
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="mb-4 w-35 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 cursor-pointer"
+          >
+            Change Password
+          </button>
+        </div>
+       
       
 
     </>

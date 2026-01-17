@@ -12,7 +12,14 @@ export default function Auth() {
   const loginFormRef = useRef(null);
   const navigate = useNavigate();
 
-  const toggleForm = () => setIsLogin(!isLogin);
+  const toggleForm = () => {
+    setIsLogin((prev) => {
+      // Clear both forms when toggling
+      if (loginFormRef.current) loginFormRef.current.reset();
+      if (signupFormRef.current) signupFormRef.current.reset();
+      return !prev;
+    });
+  };
 
 
 
@@ -55,35 +62,6 @@ export default function Auth() {
   };
 
 
-  // LOGIN HANDLER
-  // const handleLoginSubmit = async (e) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(loginFormRef.current);
-  //   const email = formData.get("email");
-  //   const password = formData.get("password");
-
-  //   toast.loading("Logging in...");
-  //   try {
-  //     const response = await axios.post(
-  //       "http://localhost:5000/api/users/login",
-  //       { email, password },
-  //       { withCredentials: true }
-  //     );
-  //     toast.dismiss();
-  //     if (response.data.success) {
-  //       toast.success("Login successful!");
-  //       // Optionally save user info/token here
-  //       navigate("/dashboard");
-  //     } else {
-  //       toast.error(response.data.message || "Login failed.");
-  //     }
-  //   } catch (err) {
-  //     toast.dismiss();
-  //     toast.error(
-  //       err.response?.data?.message || "Login failed. Please try again."
-  //     );
-  //   }
-  // };
 
 
 
@@ -104,17 +82,7 @@ export default function Auth() {
         { withCredentials: true }
       );
       toast.dismiss();
-      // if (userRes.data.success) {
-
-      //   localStorage.setItem("authType", "user"); // <-- set here
-      //   // localStorage.removeItem("userName");
-      //   localStorage.setItem("userName", response.data.user.name); // or whatever field is correct
-      //   toast.success("User login successful!");
-      //   navigate("/dashboard");
-      //   // After successful user login
-       
-      //   return;
-      // }
+      
             if (userRes.data.success) {
         localStorage.setItem("authType", "user");
         localStorage.setItem("userName", userRes.data.user.fullName); // <-- FIXED
@@ -135,7 +103,7 @@ export default function Auth() {
         if (adminRes.data.message === "Login successful" || adminRes.data.adminId) {
           
           localStorage.setItem("authType", "admin"); // <-- set here
-          localStorage.removeItem("userName");
+          localStorage.setItem("userName", "Admin");
           toast.success("Admin login successful!");
           navigate("/googleadmin");
           window.location.reload();
@@ -180,12 +148,17 @@ export default function Auth() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--medical-red)]"
               required
             />
-            <button
-              type="submit"
-              className="w-full bg-[var(--medical-red)] hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition cursor-pointer"
-            >
-              Login
-            </button>
+            <div className="flex flex-col justify-between items-center">
+              <button
+                type="submit"
+                className="bg-[var(--medical-red)] hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition cursor-pointer w-2/3"
+              >
+                Login
+              </button>
+              <Link to="/forgot-password" className="text-[var(--medical-red)] font-semibold hover:underline cursor-pointer w-1/3 text-right">
+                Forgot Password?
+              </Link>
+            </div>
           </form>
         ) : (
           // SIGNUP FORM
