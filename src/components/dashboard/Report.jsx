@@ -1,246 +1,245 @@
 import React from "react";
-import { Brain, User, CheckCircle2, XCircle, AlertTriangle, TrendingUp, Pill, Activity, Calendar } from "lucide-react";
+import {
+  Brain, User, CheckCircle2, XCircle, AlertTriangle, TrendingUp,
+  Pill, Activity, Calendar, Info, ShieldAlert
+} from "lucide-react";
+import AnalysisVisualizations from "./AnalysisVisualizations";
+
+const GRADE_ROMAN = ["0", "I", "II", "III", "IV"];
+const GRADE_COLORS = {
+  0: { text: "text-green-700",  bg: "bg-green-50",  border: "border-green-200" },
+  1: { text: "text-lime-700",   bg: "bg-lime-50",   border: "border-lime-200"  },
+  2: { text: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-200" },
+  3: { text: "text-orange-700", bg: "bg-orange-50", border: "border-orange-200"},
+  4: { text: "text-red-700",    bg: "bg-red-50",    border: "border-red-200"   },
+};
+
+// ── Reusable section wrapper matching the reference image ─────────────────────
+function Section({ title, icon, children }) {
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden">
+      <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+        {icon}
+        <h3 className="text-sm font-bold text-gray-800" style={{ fontFamily: "Sora, sans-serif" }}>
+          {title}
+        </h3>
+      </div>
+      <div className="px-5 py-4 bg-white">{children}</div>
+    </div>
+  );
+}
+
+// ── Inline label: value row ───────────────────────────────────────────────────
+function Row({ label, value, valueClass = "text-gray-700" }) {
+  return (
+    <div className="flex items-baseline gap-1 text-sm">
+      <span className="font-semibold text-gray-800 whitespace-nowrap">{label}:</span>
+      <span className={valueClass}>{value ?? "N/A"}</span>
+    </div>
+  );
+}
 
 export default function Report({ analysisResult, selectedPatient }) {
   if (!analysisResult) return null;
 
-  const confidencePct = analysisResult.confidence
-    ? (analysisResult.confidence * 100).toFixed(1)
-    : null;
-
-  const getRiskStyle = (level) => {
-    if (!level) return "risk-medium";
-    const l = level.toLowerCase();
-    if (l.includes("high")) return "risk-high";
-    if (l.includes("low")) return "risk-low";
-    return "risk-medium";
-  };
+  const r        = analysisResult;
+  const ti       = r.tumor_info || {};
+  const grade    = r.grade ?? ti.grade ?? 0;
+  const gc       = GRADE_COLORS[grade] || GRADE_COLORS[0];
+  const detected = r.tumorDetected ?? false;
+  const pct      = r.confidence ? (r.confidence * 100).toFixed(2) : null;
 
   return (
     <div className="mx-3 sm:mx-6 my-4 sm:my-6">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Report header */}
-        <div className="bg-gradient-to-r from-slate-900 to-red-950 p-6 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+        {/* ── Report Title Bar ── */}
+        <div className="px-6 py-4 bg-gradient-to-r from-slate-900 to-red-950 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
               <Brain className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-white" style={{ fontFamily: 'Sora, sans-serif' }}>
+              <h2 className="text-base font-extrabold text-white" style={{ fontFamily: "Sora, sans-serif" }}>
                 Brain Tumor Analysis Report
               </h2>
               <p className="text-gray-400 text-xs">AI-Generated Diagnostic Summary</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <img src="/Logo.png" alt="Logo" className="h-10 opacity-80" />
-          </div>
+          <img src="/Logo.png" alt="Logo" className="h-8 opacity-80" />
         </div>
 
-        <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          {/* Patient Info */}
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <div className="flex items-center gap-2 mb-3">
-              <User className="w-4 h-4 text-blue-600" />
-              <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Patient Information</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <p className="text-gray-400 uppercase tracking-wide text-[10px]">Patient Name</p>
-                <p className="font-semibold text-gray-800 mt-0.5">{selectedPatient?.name || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 uppercase tracking-wide text-[10px]">Gender</p>
-                <p className="font-semibold text-gray-800 mt-0.5">{selectedPatient?.gender || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 uppercase tracking-wide text-[10px]">Analysis Type</p>
-                <p className="font-semibold text-gray-800 mt-0.5">{analysisResult.type || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-gray-400 uppercase tracking-wide text-[10px]">Date</p>
-                <p className="font-semibold text-gray-800 mt-0.5">{new Date().toLocaleDateString()}</p>
-              </div>
-            </div>
-          </div>
+        <div className="p-4 sm:p-6 space-y-4">
 
-          {/* Classification Results */}
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-4 h-4 text-[var(--medical-red)]" />
-              <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Classification Results</h3>
+          {/* ── 1. Patient Information ── */}
+          <Section title="Patient Information" icon={<User className="w-4 h-4 text-blue-600" />}>
+            <div className="grid grid-cols-2 gap-x-12 gap-y-1.5">
+              <Row label="Patient Name" value={selectedPatient?.name} />
+              <Row label="Gender"       value={selectedPatient?.gender} />
+              <Row label="Analysis Type" value={r.type === "compare" ? "Longitudinal (Compare)" : "Single Scan"} />
+              <Row label="Date"         value={new Date().toLocaleString()} />
             </div>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Status</span>
-                <span className={`flex items-center gap-1 font-semibold ${analysisResult.success ? "text-green-600" : "text-red-600"}`}>
-                  {analysisResult.success ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-                  {analysisResult.success ? "Success" : "Failed"}
-                </span>
+          </Section>
+
+          {/* ── 2. Tumor Classification Results ── */}
+          <Section title="Tumor Classification Results" icon={<Activity className="w-4 h-4 text-red-600" />}>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 text-sm">
+                <span className="font-semibold text-gray-800">Status:</span>
+                {r.success
+                  ? <span className="flex items-center gap-1 text-green-600 font-medium"><CheckCircle2 className="w-3.5 h-3.5" /> Success</span>
+                  : <span className="flex items-center gap-1 text-red-600 font-medium"><XCircle className="w-3.5 h-3.5" /> Failed</span>}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Tumor Detected</span>
-                <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
-                  analysisResult.tumorDetected ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                }`}>
-                  {analysisResult.tumorDetected ? "YES" : "NO"}
-                </span>
-              </div>
-              {analysisResult.tumorType && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Tumor Type</span>
-                  <span className="font-semibold text-gray-800">{analysisResult.tumorType}</span>
-                </div>
-              )}
-              {confidencePct && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-gray-500">Confidence</span>
-                    <span className="font-bold text-[var(--medical-red)]">{confidencePct}%</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
-                      style={{ width: `${confidencePct}%` }}
-                    />
-                  </div>
+              <Row label="Message"
+                   value={r.type === "compare" ? "Longitudinal MRI analysis completed" : "Single MRI analysis completed"} />
+              <Row label="Tumor Detected"
+                   value={detected ? "Yes" : "No"}
+                   valueClass={detected ? "text-red-600 font-bold" : "text-green-600 font-bold"} />
+              <Row label="Tumor Type"      value={r.tumorType} />
+              <Row label="Confidence Score" value={pct ? `${pct}%` : "N/A"} />
+              {grade !== undefined && (
+                <div className="flex items-baseline gap-1 text-sm">
+                  <span className="font-semibold text-gray-800">WHO Grade:</span>
+                  <span className={`font-bold ${gc.text}`}>
+                    Grade {GRADE_ROMAN[grade] ?? grade}
+                    {ti.risk_level ? ` — ${ti.risk_level}` : ""}
+                  </span>
                 </div>
               )}
             </div>
-          </div>
+          </Section>
 
-          {/* Tumor Info */}
-          {analysisResult.tumor_info && (
-            <div className="bg-red-50 rounded-xl p-4 border border-red-100">
-              <div className="flex items-center gap-2 mb-3">
-                <Brain className="w-4 h-4 text-[var(--medical-red)]" />
-                <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Tumor Details</h3>
+          {/* ── 3. Tumor Details ── */}
+          {(ti.probability !== undefined || ti.grade !== undefined) && (
+            <Section title="Tumor Details" icon={<Brain className="w-4 h-4 text-red-600" />}>
+              <div className="grid grid-cols-3 gap-x-8 gap-y-1.5">
+                <Row label="Probability"  value={ti.probability?.toFixed(3)} />
+                <Row label="Grade"        value={ti.grade ?? "N/A"} />
+                <Row label="Uncertainty"  value={ti.uncertainty?.toFixed(3)} />
+                {ti.tumor_percentage !== undefined && (
+                  <Row label="Tumor Area" value={`${ti.tumor_percentage}%`} />
+                )}
+                {ti.glcm_malignancy !== undefined && (
+                  <Row label="Malignancy" value={ti.glcm_malignancy} />
+                )}
+                {ti.models_used !== undefined && (
+                  <Row label="Models Used" value={ti.models_used} />
+                )}
+                {ti.processing_time_s !== undefined && (
+                  <Row label="Processing" value={`${ti.processing_time_s}s`} />
+                )}
+                {ti.description && (
+                  <div className="col-span-3 text-sm">
+                    <span className="font-semibold text-gray-800">Description: </span>
+                    <span className="text-gray-700">{ti.description}</span>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-3 gap-3 text-xs">
-                <div className="bg-white rounded-lg p-2 text-center">
-                  <p className="text-lg font-extrabold text-[var(--medical-red)]" style={{ fontFamily: 'Sora, sans-serif' }}>
-                    {analysisResult.tumor_info.probability?.toFixed(2)}
-                  </p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Probability</p>
-                </div>
-                <div className="bg-white rounded-lg p-2 text-center">
-                  <p className="text-lg font-extrabold text-orange-600" style={{ fontFamily: 'Sora, sans-serif' }}>
-                    {analysisResult.tumor_info.grade || "N/A"}
-                  </p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Grade</p>
-                </div>
-                <div className="bg-white rounded-lg p-2 text-center">
-                  <p className="text-sm font-bold text-gray-700">{analysisResult.tumor_info.uncertainty || "N/A"}</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Uncertainty</p>
-                </div>
-              </div>
-            </div>
+            </Section>
           )}
 
-          {/* Survival Estimate */}
-          {analysisResult.survival_days && (
-            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-green-600" />
-                <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Survival Estimate</h3>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-extrabold text-green-600" style={{ fontFamily: 'Sora, sans-serif' }}>
-                  {analysisResult.survival_days}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Estimated survival days</p>
-              </div>
-            </div>
+          {/* ── 4. Survival Estimate ── */}
+          {r.survival_days !== undefined && r.survival_days !== null && (
+            <Section title="Survival Estimate" icon={<Calendar className="w-4 h-4 text-green-600" />}>
+              <p className="text-sm text-gray-700">
+                Estimated Survival Duration:{" "}
+                <span className="font-bold text-gray-900">{r.survival_days} days</span>
+                <span className="text-gray-500 ml-2">
+                  (approx. {Math.round(r.survival_days / 30)} months / {(r.survival_days / 365).toFixed(1)} years)
+                </span>
+              </p>
+            </Section>
           )}
 
-          {/* Risk Assessment */}
-          {analysisResult.risk && (
-            <div className={`rounded-xl p-4 border ${getRiskStyle(analysisResult.risk.level)}`}>
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4" />
-                <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Risk Assessment</h3>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Risk Level</p>
-                  <p className="text-xl font-extrabold" style={{ color: analysisResult.risk.color, fontFamily: 'Sora, sans-serif' }}>
-                    {analysisResult.risk.level}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500 mb-1">Risk Score</p>
-                  <p className="text-xl font-extrabold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>
-                    {analysisResult.risk.score?.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
+          {/* ── 5. Treatment Recommendations ── */}
+          {r.recommendations && r.recommendations.length > 0 && (
+            <Section title="Treatment Recommendations" icon={<Pill className="w-4 h-4 text-purple-600" />}>
+              <ul className="space-y-1.5">
+                {r.recommendations.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm">
+                    <span className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center text-[10px] font-bold text-purple-700 flex-shrink-0 mt-0.5">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="font-semibold text-gray-800">{Array.isArray(rec) ? rec[0] : rec}</span>
+                      {Array.isArray(rec) && rec[1] && (
+                        <span className="text-gray-500 ml-1 text-xs">({rec[1]})</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
           )}
 
-          {/* Treatment Recommendations */}
-          {analysisResult.recommendations && (
-            <div className="md:col-span-2 bg-purple-50 rounded-xl p-4 border border-purple-100">
-              <div className="flex items-center gap-2 mb-3">
-                <Pill className="w-4 h-4 text-purple-600" />
-                <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Treatment Recommendations</h3>
+          {/* ── 6. Risk Assessment ── */}
+          {r.risk && (
+            <Section title="Risk Assessment" icon={<ShieldAlert className="w-4 h-4 text-orange-600" />}>
+              <div className="space-y-1 text-sm">
+                <div className="flex items-baseline gap-1">
+                  <span className="font-semibold text-gray-800">Level:</span>
+                  <span className="font-bold" style={{ color: r.risk.color }}>{r.risk.level}</span>
+                </div>
+                <Row label="Score" value={r.risk.score?.toFixed(2)} />
               </div>
-              <div className="grid md:grid-cols-2 gap-2">
-                {analysisResult.recommendations.map((rec, idx) => (
-                  <div key={idx} className="flex items-start gap-2 bg-white rounded-lg p-3">
-                    <CheckCircle2 className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-semibold text-gray-800">{rec[0]}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{rec[1]}</p>
+            </Section>
+          )}
+
+          {/* ── 7. Longitudinal Progression (compare only) ── */}
+          {r.progression && (
+            <Section title="Longitudinal Progression" icon={<TrendingUp className="w-4 h-4 text-indigo-600" />}>
+              {r.progression.timepoints?.length > 0 && (
+                <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                  {r.progression.timepoints.map((tp, idx) => (
+                    <div key={idx} className="bg-indigo-50 rounded-lg p-3 border border-indigo-100 text-sm space-y-0.5">
+                      <p className="font-bold text-indigo-700 mb-1">Timepoint {tp.index}</p>
+                      <Row label="Probability" value={tp.tumor_info?.probability?.toFixed(3)} />
+                      <Row label="Grade"       value={tp.tumor_info?.grade} />
+                      <Row label="Volume"      value={tp.volume} />
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Progression */}
-          {analysisResult.progression && (
-            <div className="md:col-span-2 bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-sm font-bold text-gray-700" style={{ fontFamily: 'Sora, sans-serif' }}>Longitudinal Progression</h3>
-              </div>
-              <div className="grid md:grid-cols-3 gap-3 mb-3">
-                {analysisResult.progression.timepoints?.map((tp, idx) => (
-                  <div key={idx} className="bg-white rounded-lg p-3 text-xs">
-                    <p className="font-bold text-indigo-700 mb-1">Timepoint {tp.index}</p>
-                    <p className="text-gray-500">Volume: <span className="font-semibold text-gray-700">{tp.volume}</span></p>
-                    <p className="text-gray-500">Probability: <span className="font-semibold text-gray-700">{tp.tumor_info?.probability?.toFixed(3)}</span></p>
-                    <p className="text-gray-500">Grade: <span className="font-semibold text-gray-700">{tp.tumor_info?.grade}</span></p>
-                  </div>
-                ))}
-              </div>
-              {analysisResult.progression.summary && (
-                <div className="bg-white rounded-lg p-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <p className="text-gray-400 uppercase tracking-wide text-[10px]">Status</p>
-                    <p className="font-semibold text-gray-800 mt-0.5">{analysisResult.progression.summary.status}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 uppercase tracking-wide text-[10px]">RANO</p>
-                    <p className="font-semibold text-gray-800 mt-0.5">{analysisResult.progression.summary.rano}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 uppercase tracking-wide text-[10px]">Prob. Change</p>
-                    <p className="font-semibold text-gray-800 mt-0.5">{analysisResult.progression.summary.prob_change?.toFixed(3)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 uppercase tracking-wide text-[10px]">Vol. Change</p>
-                    <p className="font-semibold text-gray-800 mt-0.5">{analysisResult.progression.summary.vol_change_pct?.toFixed(2)}%</p>
-                  </div>
+                  ))}
                 </div>
               )}
-            </div>
+              {r.progression.summary && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  {[
+                    ["Status",       r.progression.summary.status],
+                    ["RANO",         r.progression.summary.rano],
+                    ["Prob. Change", r.progression.summary.prob_change?.toFixed(3)],
+                    ["Vol. Change",  r.progression.summary.vol_change_pct !== undefined
+                                      ? `${r.progression.summary.vol_change_pct?.toFixed(1)}%` : "—"],
+                  ].map(([label, val]) => (
+                    <div key={label} className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</p>
+                      <p className="font-bold text-gray-800 mt-0.5 text-sm">{val ?? "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Section>
           )}
+
+          {/* ── 8. Report Summary ── */}
+          <Section title="Report Summary" icon={<Info className="w-4 h-4 text-gray-500" />}>
+            <div className="space-y-1 text-sm text-gray-600">
+              <p>Analysis Type: {r.type === "compare" ? "Longitudinal (Compare)" : "Single Scan"}</p>
+              <p>Patient: {selectedPatient?.name}</p>
+              <p>Date: {new Date().toLocaleString()}</p>
+              {ti.disclaimer && (
+                <p className="text-[11px] text-amber-600 mt-2 italic">{ti.disclaimer}</p>
+              )}
+            </div>
+          </Section>
+
+          {/* ── AI Visualizations ── */}
+          {r.visualizations && Object.keys(r.visualizations).length > 0 && (
+            <AnalysisVisualizations visualizations={r.visualizations} />
+          )}
+
         </div>
 
-        {/* Footer */}
-        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs text-gray-400">
+        {/* ── Footer ── */}
+        <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs text-gray-400">
           <span>LongiTumorSense AI Platform · Confidential Medical Report</span>
           <span>{new Date().toLocaleString()}</span>
         </div>

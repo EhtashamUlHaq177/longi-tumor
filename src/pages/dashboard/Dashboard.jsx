@@ -61,11 +61,11 @@ export default function Dashboard() {
   const [exploreFile, setExploreFile] = useState(null);
   const [compareFirstFile, setCompareFirstFile] = useState(null);
   const [compareLatestFile, setCompareLatestFile] = useState(null);
-  const [saveToHistory, setSaveToHistory] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [newPatient, setNewPatient] = useState({ name: "", age: "", gender: "" });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzingType, setAnalyzingType] = useState(null); // "explore" | "compare"
   const navigate = useNavigate();
   const [editPatientId, setEditPatientId] = useState(null);
   const [editAge, setEditAge] = useState("");
@@ -148,6 +148,9 @@ export default function Dashboard() {
     if (!selectedPatient?._id) {
       toast.error("No patient selected. Please select a patient first."); return;
     }
+
+    let toastId = null;
+
     try {
       const formData = new FormData();
       if (type === "explore") {
@@ -160,45 +163,93 @@ export default function Dashboard() {
         formData.append("first_mri", compareFirstFile);
         formData.append("latest_mri", compareLatestFile);
       }
+
       setIsAnalyzing(true);
-      const toastId = toast.loading("Generating result... This may take a while", {
+      setAnalyzingType(type);
+
+      toastId = toast.loading("Generating result... This may take a while", {
         autoClose: false, closeButton: false, closeOnClick: false, draggable: false
       });
+
       formData.append("patientId", selectedPatient._id);
       const endpoint = type === "explore"
         ? "http://localhost:5000/api/mri/upload"
         : "http://localhost:5000/api/mri/compare";
-      const res = await axios.post(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
+
+      const res = await axios.post(endpoint, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 600000,
+      });
+
+      const result = res.data.result || res.data;
+
+      // ── Rejected by brain MRI validator ──
+      if (result.rejected) {
+        toast.update(toastId, {
+          render: (
+            <div>
+              <p className="font-bold text-sm">Invalid MRI Image</p>
+              <p className="text-xs mt-0.5 opacity-90">{result.reason}</p>
+            </div>
+          ),
+          type: "error", isLoading: false, autoClose: 7000, closeButton: true,
+        });
+        setAnalysisResult(null);
+        return;
+      }
+
+      // ── Success ──
       toast.update(toastId, {
         render: `${type === "explore" ? "Explore" : "Compare"} analysis completed!`,
         type: "success", isLoading: false, autoClose: 3000,
       });
-      setAnalysisResult(res.data.result || res.data);
-      // Auto-switch to details panel on mobile after analysis
+
+      setAnalysisResult(result);
       setMobileTab("details");
+
     } catch (error) {
       console.error("Analysis error:", error);
-      toast.error("Error running analysis");
-      setAnalysisResult({ success: false, message: "Could not complete analysis" });
+      const errData  = error.response?.data || {};
+      const errMsg   = errData.error || errData.message || error.message || "";
+      const isRejected = errData.rejected;
+
+      if (isRejected) {
+        const reason = errData.reason || errMsg;
+        if (toastId) {
+          toast.update(toastId, {
+            render: (
+              <div>
+                <p className="font-bold text-sm">Invalid MRI Image</p>
+                <p className="text-xs mt-0.5 opacity-90">{reason}</p>
+              </div>
+            ),
+            type: "error", isLoading: false, autoClose: 7000, closeButton: true,
+          });
+        } else {
+          toast.error(
+            <div>
+              <p className="font-bold text-sm">Invalid MRI Image</p>
+              <p className="text-xs mt-0.5 opacity-90">{reason}</p>
+            </div>,
+            { autoClose: 7000 }
+          );
+        }
+      } else if (errMsg.includes("not running") || error.code === "ECONNREFUSED") {
+        const msg = "AI server is not running. Start it with: python ModelAPI/api.py";
+        if (toastId) toast.update(toastId, { render: msg, type: "error", isLoading: false, autoClose: 8000, closeButton: true });
+        else toast.error(msg, { autoClose: 8000 });
+      } else {
+        const msg = errMsg || "Error running analysis. Please try again.";
+        if (toastId) toast.update(toastId, { render: msg, type: "error", isLoading: false, autoClose: 5000, closeButton: true });
+        else toast.error(msg, { autoClose: 5000 });
+      }
+
+      setAnalysisResult(null);
+
     } finally {
       setIsAnalyzing(false);
+      setAnalyzingType(null);
     }
-  };
-
-  const handleSaveHistory = async () => {
-    if (!selectedPatient?._id || !analysisResult || !saveToHistory) {
-      toast.error("Please check 'Save results to history' before saving."); return;
-    }
-    try {
-      await axios.post("http://localhost:5000/api/reports", {
-        patientId: selectedPatient._id,
-        result: analysisResult,
-        type: analysisResult.type || "explore",
-        timestamp: new Date(),
-      }, { withCredentials: true });
-      toast.success("Record saved to history");
-      window.location.reload();
-    } catch (err) { toast.error("Failed to save record"); }
   };
 
   const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 bg-gray-50 focus:bg-white focus:border-blue-400 focus:outline-none transition-all duration-200";
@@ -289,35 +340,60 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── DESKTOP layout (lg+): 3 columns side by side ── */}
+      {/* ── DESKTOP layout (lg+): 3 columns with visible dividers ── */}
       <div className="hidden lg:flex h-screen bg-gray-50 pt-28 overflow-hidden">
-        <PatientList
-          patients={patients} selectedPatient={selectedPatient}
-          setSelectedPatient={p => { setSelectedPatient(p); setAnalysisResult(null); }}
-          setAnalysisResult={setAnalysisResult}
-          editPatientId={editPatientId} setEditPatientId={setEditPatientId}
-          editAge={editAge} setEditAge={setEditAge}
-          handleUpdateAge={handleUpdateAge} handleDeletePatient={handleDeletePatient}
-          setShowPatientModal={setShowPatientModal}
-        />
-        <div className="flex flex-1 overflow-hidden">
-          <AnalysisForm
-            exploreFile={exploreFile} handleExploreUpload={handleExploreUpload}
-            isAnalyzing={isAnalyzing} handleRunAnalysis={handleRunAnalysis}
-            compareFirstFile={compareFirstFile} handleCompareFirstUpload={handleCompareFirstUpload}
-            compareLatestFile={compareLatestFile} handleCompareLatestUpload={handleCompareLatestUpload}
-          />
-          <PatientDetails
-            selectedPatient={selectedPatient} analysisResult={analysisResult}
-            saveToHistory={saveToHistory} handleSaveHistory={handleSaveHistory}
-          />
+        {/* Column 1: Patient List */}
+        <div className="flex-shrink-0 flex flex-col border-r-2 border-gray-200">
+          <div className="px-4 py-2.5 bg-white border-b-2 border-gray-200 flex items-center gap-2">
+            <Users className="w-3.5 h-3.5 text-[var(--medical-red)]" />
+            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Patients</span>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <PatientList
+              patients={patients} selectedPatient={selectedPatient}
+              setSelectedPatient={p => { setSelectedPatient(p); setAnalysisResult(null); }}
+              setAnalysisResult={setAnalysisResult}
+              editPatientId={editPatientId} setEditPatientId={setEditPatientId}
+              editAge={editAge} setEditAge={setEditAge}
+              handleUpdateAge={handleUpdateAge} handleDeletePatient={handleDeletePatient}
+              setShowPatientModal={setShowPatientModal}
+            />
+          </div>
+        </div>
+        {/* Column 2: Analysis Form */}
+        <div className="flex flex-col flex-1 overflow-hidden border-r-2 border-gray-200">
+          <div className="px-4 py-2.5 bg-white border-b-2 border-gray-200 flex items-center gap-2">
+            <Scan className="w-3.5 h-3.5 text-[var(--medical-red)]" />
+            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">MRI Analysis</span>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <AnalysisForm
+              exploreFile={exploreFile} handleExploreUpload={handleExploreUpload}
+              isAnalyzing={isAnalyzing} analyzingType={analyzingType} handleRunAnalysis={handleRunAnalysis}
+              compareFirstFile={compareFirstFile} handleCompareFirstUpload={handleCompareFirstUpload}
+              compareLatestFile={compareLatestFile} handleCompareLatestUpload={handleCompareLatestUpload}
+            />
+          </div>
+        </div>
+        {/* Column 3: Patient Details */}
+        <div className="flex flex-col">
+          <div className="px-4 py-2.5 bg-white border-b-2 border-gray-200 flex items-center gap-2">
+            <User className="w-3.5 h-3.5 text-[var(--medical-red)]" />
+            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Details</span>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <PatientDetails
+              selectedPatient={selectedPatient}
+              analysisResult={analysisResult}
+            />
+          </div>
         </div>
       </div>
 
       {/* ── TABLET layout (md–lg): 2 columns ── */}
       <div className="hidden md:flex lg:hidden h-screen bg-gray-50 pt-28 overflow-hidden">
-        {/* Left: patient list, fixed width */}
-        <div className="w-64 flex-shrink-0 overflow-hidden flex flex-col border-r border-gray-100 bg-white shadow-sm">
+        {/* Left: patient list */}
+        <div className="w-64 flex-shrink-0 overflow-hidden flex flex-col border-r-2 border-gray-200 bg-white">
           <PatientList
             patients={patients} selectedPatient={selectedPatient}
             setSelectedPatient={p => { setSelectedPatient(p); setAnalysisResult(null); }}
@@ -328,20 +404,19 @@ export default function Dashboard() {
             setShowPatientModal={setShowPatientModal}
           />
         </div>
-        {/* Right: analysis + details stacked vertically */}
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        {/* Right: analysis + details stacked */}
+        <div className="flex-1 overflow-y-auto flex flex-col divide-y-2 divide-gray-200">
           <AnalysisForm
             exploreFile={exploreFile} handleExploreUpload={handleExploreUpload}
-            isAnalyzing={isAnalyzing} handleRunAnalysis={handleRunAnalysis}
+            isAnalyzing={isAnalyzing} analyzingType={analyzingType} handleRunAnalysis={handleRunAnalysis}
             compareFirstFile={compareFirstFile} handleCompareFirstUpload={handleCompareFirstUpload}
             compareLatestFile={compareLatestFile} handleCompareLatestUpload={handleCompareLatestUpload}
           />
-          {/* Patient details inline below analysis on tablet */}
           {selectedPatient && (
-            <div className="border-t border-gray-100 bg-white">
+            <div className="bg-white">
               <PatientDetails
-                selectedPatient={selectedPatient} analysisResult={analysisResult}
-                saveToHistory={saveToHistory} handleSaveHistory={handleSaveHistory}
+                selectedPatient={selectedPatient}
+                analysisResult={analysisResult}
               />
             </div>
           )}
@@ -396,7 +471,7 @@ export default function Dashboard() {
               )}
               <AnalysisForm
                 exploreFile={exploreFile} handleExploreUpload={handleExploreUpload}
-                isAnalyzing={isAnalyzing} handleRunAnalysis={handleRunAnalysis}
+                isAnalyzing={isAnalyzing} analyzingType={analyzingType} handleRunAnalysis={handleRunAnalysis}
                 compareFirstFile={compareFirstFile} handleCompareFirstUpload={handleCompareFirstUpload}
                 compareLatestFile={compareLatestFile} handleCompareLatestUpload={handleCompareLatestUpload}
               />
@@ -406,10 +481,9 @@ export default function Dashboard() {
           {mobileTab === "details" && (
             <div className="bg-white min-h-full">
               <PatientDetails
-                selectedPatient={selectedPatient} analysisResult={analysisResult}
-                saveToHistory={saveToHistory} handleSaveHistory={handleSaveHistory}
+                selectedPatient={selectedPatient}
+                analysisResult={analysisResult}
               />
-              {/* Report inline on mobile */}
               {analysisResult && (
                 <Report analysisResult={analysisResult} selectedPatient={selectedPatient} />
               )}

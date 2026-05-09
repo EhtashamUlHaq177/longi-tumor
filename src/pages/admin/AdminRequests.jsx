@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { LogOut, ShieldCheck } from "lucide-react";
 
 export default function AdminRequests() {
   const [allRequests, setAllRequests] = useState([]);
@@ -91,15 +92,30 @@ const handleAdminLogout = async () => {
 
   return (
     
-    <div className="p-6 mt-20">
-    <div className="flex justify-end mb-4">
-  <button
-    onClick={handleAdminLogout}
-    className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 cursor-pointer"
-  >
-    Logout
-  </button>
-</div>
+    <div className="min-h-screen bg-gray-50">
+      <ToastContainer position="top-center" autoClose={2000} />
+
+      {/* ── Top bar — matches user dashboard style ── */}
+      <div className="fixed top-16 left-0 right-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <ShieldCheck className="w-4 h-4 text-[var(--medical-red)]" />
+            <span className="text-sm font-semibold text-gray-700" style={{ fontFamily: "Sora, sans-serif" }}>
+              Admin Panel
+            </span>
+          </div>
+          <button
+            onClick={handleAdminLogout}
+            className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="pt-28 px-4 sm:px-6 pb-12">
       <h1 className="text-2xl font-bold text-[var(--medical-red)] mb-6">
         User Requests
       </h1>
@@ -212,7 +228,6 @@ const handleAdminLogout = async () => {
 
 
 
-      {/* Modal Overlay */}
       {selectedRequest && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg relative">
@@ -261,7 +276,7 @@ const handleAdminLogout = async () => {
         </div>
       )}
 
-      <ToastContainer position="bottom-right" />
+      </div>
     </div>
   );
 }
