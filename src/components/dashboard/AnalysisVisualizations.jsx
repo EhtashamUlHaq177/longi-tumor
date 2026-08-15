@@ -2,21 +2,8 @@ import React, { useState } from "react";
 import { ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const PANEL_LABELS = {
-  // Single scan panels
-  panel_01: "Original MRI Scan",
-  panel_02: "AI Contrast Enhanced",
-  panel_03: "Tumor Segmentation Overlay",
-  panel_04: "Tissue Composition",
-  panel_05: "Probability Heatmap",
-  panel_06: "Grade Probability Distribution",
-  panel_07: "Edge & Texture Analysis",
-  panel_08: "Clinical Summary",
-  // Comparison panels
-  panel_c01: "Side-by-Side Scans",
-  panel_c02: "Segmentation Overlays",
-  panel_c03: "Grade Probability Comparison",
-  panel_c04: "Progression Analysis",
-  panel_c05: "Intensity Difference Map",
+  // Composite panels (new world-class visualization)
+  panel_composite: "AI Diagnostic Visualization",
 };
 
 function LightboxModal({ panels, startIndex, onClose }) {
@@ -108,8 +95,8 @@ export default function AnalysisVisualizations({ visualizations }) {
         </span>
       </div>
 
-      {/* Grid — 4 cols for single scan (8 panels), 3 cols for compare (5 panels = cleaner 3-row layout) */}
-      <div className={`grid gap-3 ${keys.length <= 5 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4"}`}>
+      {/* Grid — full width for composite panel */}
+      <div className="grid gap-3 grid-cols-1">
         {keys.map((key, i) => (
           <button
             key={key}
@@ -119,7 +106,7 @@ export default function AnalysisVisualizations({ visualizations }) {
             <img
               src={`data:image/png;base64,${visualizations[key]}`}
               alt={PANEL_LABELS[key] || key}
-              className="w-full object-cover aspect-square"
+              className="w-full object-contain"
               loading="lazy"
             />
             {/* Hover overlay */}

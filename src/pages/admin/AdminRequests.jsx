@@ -115,7 +115,7 @@ const handleAdminLogout = async () => {
         </div>
       </div>
 
-      <div className="pt-28 px-4 sm:px-6 pb-12">
+      <div className="pt-36 px-4 sm:px-6 pb-12">
       <h1 className="text-2xl font-bold text-[var(--medical-red)] mb-6">
         User Requests
       </h1>
